@@ -280,7 +280,6 @@ function handleUserMediaSuccess(stream) {
 	navigator.mediaDevices.getUserMedia(constraints).then(
 		function success(stream) {
 			video.srcObject = stream;
-
 			// make a call to another function that we will use
 			// to process our video stream in some way set the
 			// interval to twice every second
@@ -295,3 +294,22 @@ function handleUserMediaSuccess(stream) {
 function myVideoFunction() {
 	var video = document.getElementById("my-video");
 }
+
+var interval = window.setInterval(() => {
+	/* set the frame to the dimensions of the video feed */
+	// let video = document.querySelector("video");
+	let frame = document.getElementById("frame");
+
+	frame.width = video.videoWidth;
+	frame.height = video.videoHeight;
+	/* make the snapshot */
+	frame.getContext("2d").drawImage(video, 0, 0, frame.width, frame.height);
+	let ctx1 = frame.getContext("2d");
+	let framedata = ctx1.getImageData(0, 0, frame.width, frame.height);
+	// console.log(framedata);
+	avg = 0;
+	for (let i = 0; i < framedata.data.length / 4; i++) {
+		avg = avg + framedata.data[i];
+	}
+	console.log(avg / framedata.data.length);
+}, 500);
