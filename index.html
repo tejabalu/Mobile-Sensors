@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>CodePen - Lecture 7 Workbook: Just The Story</title>
+		<link rel="stylesheet" href="./style.css" />
+	</head>
+	<body>
+		<!-- partial:index.partial.html -->
+		<body>
+			<div id="bbox" class="wrapper">
+				<!-- remove id names with spaces, camelcase for ID, hyphen for classes-->
+				<button id="permission" onclick="requestDeviceMotion()">
+					request device motion access
+				</button>
+				<p id="acc_text">
+					This text block catches the output from the accelerometer
+				</p>
+				<p id="touch_text">This canvas tests touch functionality</p>
+				<canvas
+					id="canvas"
+					width="600"
+					height="600"
+					style="border: solid black 1px"
+				></canvas>
+				<p id="camera_text">This canvas tests the camera</p>
+				<video
+					id="my_video"
+					width="600"
+					height="600"
+					style="border: solid black 1px"
+					autoplay="true"
+				></video>
+				<p id="motion_text"></p>
+			</div>
+		</body>
+		<!-- partial -->
+		<script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+		<script src="./script.js"></script>
+	</body>
+</html>
