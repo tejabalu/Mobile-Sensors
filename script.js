@@ -247,6 +247,8 @@ function handleStart(event) {
 // via a prompt sent to the user
 // navigator.mediaDevices.getUserMedia({video: true});
 
+var sliderjs = document.getElementById("slider");
+
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 	navigator.mediaDevices
 		.getUserMedia({ video: true })
@@ -311,5 +313,6 @@ var interval = window.setInterval(() => {
 	for (let i = 0; i < framedata.data.length / 4; i++) {
 		avg = avg + framedata.data[i];
 	}
-	console.log(avg / framedata.data.length);
-}, 500);
+	// console.log(avg / framedata.data.length);
+	sliderjs.value = avg / framedata.data.length;
+}, 100);
