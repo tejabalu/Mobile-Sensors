@@ -5,9 +5,6 @@
 // python code for the step counter server
 // https://github.com/wesleybeckner/myStepCounter
 
-// for ios 12+ we need the user to interact with the app
-// in some fashion (eg clicking a button) and initiate
-// a request ot use their devices' motion capabilities
 function requestDeviceMotion() {
 	console.log("clicked");
 	if (
@@ -118,36 +115,38 @@ function handleDeviceMotion2(event) {
 	// between historical values?
 	let time = new Date();
 	let n = time.getTime();
-	ongoingMotion.push(new Array(n, accX, accY, accZ));
-	document.getElementById("motion_text").innerHTML =
-		ongoingMotion[ongoingMotion.length - 1];
+	ongoingMotion.push(new Array(n, accX, accY, accZ, accZwG));
+	// document.getElementById("motion_text").innerHTML =
+	// ongoingMotion[ongoingMotion.length - 1];
 }
 var test = new Array();
 function sendSteps() {
 	// make some dummy data to test out the API
 	// (it is a good idea to test the components of your
 	// webapp before stringing them all together! BUG?? WHERE??)
-	test.push(new Array(100, 0.1, 0.4, -9.1));
-	test.push(new Array(100, 0.1, 0.4, 9.1));
+	// test.push(new Array(100, 0.1, 0.4, -9.1));
+	test = ongoingMotion;
+	document.getElementById("motion_text").innerHTML = test[test.length - 1];
+	// console.log(test)
 
 	// we can take this directly from postman!
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "https://mystepcounter.azurewebsites.net/steps", true);
+	xhr.open("POST", "https://teststepcounter.azurewebsites.net/steps", true);
 	xhr.setRequestHeader("Content-Type", "application/json");
 	xhr.send(JSON.stringify(test));
 
 	// update the page with the return
 	xhr.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("motion_text").innerHTML =
+			document.getElementById("stepstext").innerHTML =
 				"steps: " + this.responseText;
 		}
 	};
-	window.setTimeout(sendSteps, 1000);
+	window.setTimeout(sendSteps, 100);
 }
 
 // Uncomment the below line to send step array data to our python server!
-// window.setTimeout(sendSteps, 1000)
+sendSteps();
 
 //////////////////////////////////////////
 // MULTI-TOUCH FUNCTIONALITY
@@ -180,10 +179,16 @@ function handleTouchChange(event) {
 // that listens for touchstart
 
 var cvs = document.getElementById("canvas");
-cvs.addEventListener("touchstart", handleStart);
+cvs.addEventListener("touchmove", handleStart);
 
 // create an empty array to append our touches to
 var ongoingTouches = [];
+var k = 0;
+var x, y;
+
+cvs.addEventListener("touchend", function () {
+	k = 0;
+});
 
 function handleStart(event) {
 	// prevent default behaviors
@@ -202,40 +207,48 @@ function handleStart(event) {
 	// to get dimensions including margins. e.g.
 	// $(elem).outerHeight(true)
 	var box = document.getElementById("bbox");
-	console.log(box.offsetWidth);
+	// console.log(box.offsetWidth);
 
 	var obj3 = document.getElementById("camera_text");
-	console.log($(obj3).outerHeight(true));
-	var xoff = (box.offsetWidth - el.offsetWidth) / 2 + 50;
+	// console.log($(obj3).outerHeight(true));
+	var xoff = (box.offsetWidth - el.offsetWidth) / 2 + 55;
 	var yoff =
-		box.offsetHeight - el.offsetHeight * 2 - $(obj3).outerHeight(true);
+		box.offsetHeight - el.offsetHeight * 2 - $(obj3).outerHeight(true) - 55;
 
 	for (var i = 0; i < touches.length; i++) {
 		// add to our ongoingTouches array
 		ongoingTouches.push(touches[i]);
+		// console.log(i);
+		// console.log(touches[i]);
 
-		var color = "#000000";
-		// our starting paths for drawing on the screen will be circles
-		// use beginPath, arc, fillStyle, fill to create circles from
-		// the touch point. arc(x, y, r, sAngle, eAngle, counterclockwise)
-		// using arc draw a full circle (0 to 2 pi radians for the angles)
 		ctx.beginPath();
 		ctx.strokeStyle = "blue";
-		ctx.strokeRect(
-			touches[i].pageX - xoff,
-			touches[i].pageY - yoff,
-			10,
-			10
-		);
-		// ctx.arc(touches[i].pageX-xoff,
-		//         touches[i].pageY-yoff,
-		// 10, 0, 2 * Math.PI, false);
-		ctx.fillStyle = color;
-		ctx.stroke();
-		// ctx.fill();
+		if (k == 0) {
+			x = touches[i].pageX;
+			y = touches[i].pageY;
+		}
+
+		for (n = 0; n < 2; n++) {
+			// console.log(n);
+			if (n > 0) {
+				ctx.lineWidth = 5;
+				ctx.moveTo(x - xoff, y - yoff);
+				ctx.lineTo(touches[i].pageX - xoff, touches[i].pageY - yoff);
+				ctx.stroke();
+			}
+		}
+		k++;
+		x = touches[i].pageX;
+		y = touches[i].pageY;
 	}
 }
-
+var clear = document.getElementById("clearscreen");
+clear.addEventListener("click", function () {
+	var el = document.getElementById("canvas");
+	var ctx = el.getContext("2d");
+	console.log(1);
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
 //////////////////////////////////////////
 // CAMERA FUNCTIONALITY
 //////////////////////////////////////////
@@ -248,6 +261,7 @@ function handleStart(event) {
 // navigator.mediaDevices.getUserMedia({video: true});
 
 var sliderjs = document.getElementById("slider");
+var camtext = document.getElementById("text");
 
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 	navigator.mediaDevices
@@ -315,4 +329,10 @@ var interval = window.setInterval(() => {
 	}
 	// console.log(avg / framedata.data.length);
 	sliderjs.value = avg / framedata.data.length;
+
+	if (avg / framedata.data.length < 20) {
+		camtext.innerText = "Camera blocked";
+	} else {
+		camtext.innerText = "";
+	}
 }, 100);
